@@ -63,9 +63,13 @@ int main(int argc, char *argv[]) {
  while ((arg = getopt(argc, argv, "v:o:s:t:dh")) != -1) {
     switch (arg) {
         case 'v': 
-          if(strcmp(optarg,"1.0")==0||strcmp(optarg,"1")==0)ver=100;
-          if(strcmp(optarg,"2.0")==0||strcmp(optarg,"2")==0)ver=200;
-          if(strcmp(optarg,"2.1")==0                       )ver=210;
+          if     (strcmp(optarg,"1.0")==0||strcmp(optarg,"1")==0)ver=100;
+          else if(strcmp(optarg,"2.0")==0||strcmp(optarg,"2")==0)ver=200;
+          else if(strcmp(optarg,"2.1")==0                       )ver=210;
+          else{
+            printf("Error: invalid version.\n");
+            help=1;
+          }
         break;
         case 'o': opt=atoi(optarg); break;
         case 's': s=atoi(optarg); break;
@@ -77,7 +81,6 @@ int main(int argc, char *argv[]) {
     }
   }
   
-  if (ver==0) {printf("Error: invalid version.\n"); help=1;}
   if (opt < 1 || opt > 4) {printf("Error: invalid opt value.\n"); help=1;}
   if (s<0) {printf("Error: Negative value of seq not allowed.\n"); help=1;}
   if (maxstep<0) {printf("Error: Negative value of stp not allowed.\n"); help=1;}
@@ -264,11 +267,32 @@ int main(int argc, char *argv[]) {
         }
         /* Determine the bad sequence and calculate Delta */
         for (k=0; k<=n; k++) {
-          found = 1; for (l = 0; l < m; l++) if (S[l + (n-k)*nr] >= S[l + n*nr]) found=0;
-          /* If found, calculate Delta */
+          /* find and jump to parent of n */
+          for (l=1; n-(k+l)>=0; l++) {
+            if(S[0+(n-(k+l))*nr] < S[0+(n-k)*nr]){
+              k=k+l; /* jump to parent */
+              break;
+            }
+          }
+          found = 1;
+          for (l = 0; l < m; l++){
+            if (S[l + (n-k)*nr] >= S[l + n*nr]){
+              found=0;
+              break;
+            }
+          }
+          /* If all dimension are small, calculate Delta */
           if (found) {
-            for (l = 0; l<=row; l++) Delta[l] = (l < m-1)? S[l + n*nr]-S[l + (n-k)*nr]: 0;
-            bad = k; k = n+1;
+            for (l = 0; l<=row; l++){
+              Delta[l] = (l < m-1)? S[l + n*nr]-S[l + (n-k)*nr]: 0;
+            }
+            bad = k;
+            k = n+1;
+            if(detail){
+              printf("S[bad=%ld]=(",(n-bad));
+              for (l=0; l<row; l++) printf ("%d,",S[l+(n-bad)*nr]);
+              printf ("%d)\n", S[row+(n-bad)*nr]);
+            }
           }
         }
       }
@@ -303,7 +327,7 @@ int main(int argc, char *argv[]) {
        for (l=0; l<row; l++) printf ("%d,",Delta[l]);
        printf ("%d)\n", Delta[row]);
         /* Show C matrix */
-        if (ver > 1) {
+        if (ver == 200) {
             printf ("C = ");
             for (l=1; l<=bad; l++) {
                 printf ("(");
@@ -317,7 +341,7 @@ int main(int argc, char *argv[]) {
     }
 
     /* Copy bad sequence */
-    if (ver == 1) {
+    if (ver == 100 || ver == 210) {
     /***** Version 1 *****/
       while (n < nn) {
         for (l=0; l<=row; l++) S[l + n*nr] = S[l + (n-bad)*nr] + Delta[l];
