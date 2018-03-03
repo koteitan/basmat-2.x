@@ -1,6 +1,6 @@
 /*
 
-basmat - Bashicu Matrix Calculator version 2.0
+basmat - Bashicu Matrix Calculator version 2.1
 
 Usage: basmat [-v ver] [-o opt] [-s seq] [-t stp] [-dh] ini
 
@@ -8,9 +8,10 @@ Usage: basmat [-v ver] [-o opt] [-s seq] [-t stp] [-dh] ini
        BM: sequence expression of Bashicu matrix.
        n: natural number. n=2 if not given.
        ex. "(0,0)(1,1)[3]"   (Quote to escape brackets in shell)
-  ver: Version of Bashicu matrix system. Default = 1.
-       ver = 1: The first simple version in 2014.
-       ver = 2: Modified version to avoid non-terminating pattern in 2016.
+  ver: Version of Bashicu matrix system. Default = 2.1.
+       ver = 1.0 or 1: The first simple version in 2014.
+       ver = 2.0 or 2: Modified version to avoid non-terminating pattern in 2016.
+       ver = 2.1     : Modified version to fit Buchholz's Hydra.
   opt: Calculation option.
        opt = 1: n is constant. (Default)
        opt = 2: n = n+1 for each loop.
@@ -27,14 +28,21 @@ Example:
      basmat -o 4 -s 100000 "(0,0)(1,1)[3]"
      basmat -o 1 -s 13000 -t 100000 "(0,0)(1,1)[3]"
 
-Web interface is available at
-     http://gyafun.jp/ln/basmat.cgi
+The original version 2.0 is available at
+  http://gyafun.jp/ln/basmat/
 
-Author: Fish
-     http://googology.wikia.com/wiki/User:Kyodaisuu
-     
-Version History
+Version History:
+     Version 2.1 (MAR    2018): by koteitan
+     Version 2.0 (APR 14 2017): by Fish
+     Version 1.0 (SEP  1 2014): by Fish
+     https://github.com/koteitan/basmat-2.1
      http://gyafun.jp/ln/basmat/ChangeLog.txt
+
+Authors:
+  Original version 2.0: Fish
+    http://googology.wikia.com/wiki/User:Kyodaisuu
+  Modified version 2.1: koteitan
+    https://twitter.com/koteitan
 
 ***********************************/
 
@@ -47,18 +55,21 @@ Version History
 int main(int argc, char *argv[]) {
   /**************************** Initialization ****************************/
   int *S, *Delta, *C, row=0, bad, found, i=0, j, l, m, nr, len;
-  int opt=1, ver=1, detail=0, help=0;
+  int opt=1, ver=210, detail=0, help=0;
   long n, nn, k, num=0, s=20, step=0, maxstep=0;
   char *bm, arg;
-
   /* Read commandline options */
 
  while ((arg = getopt(argc, argv, "v:o:s:t:dh")) != -1) {
     switch (arg) {
-        case 'v': ver=atoi(optarg); break;
+        case 'v': 
+          if(strcmp(optarg,"1.0")==0||strcmp(optarg,"1")==0)ver=100;
+          if(strcmp(optarg,"2.0")==0||strcmp(optarg,"2")==0)ver=200;
+          if(strcmp(optarg,"2.1")==0                       )ver=210;
+        break;
         case 'o': opt=atoi(optarg); break;
         case 's': s=atoi(optarg); break;
-        case 't':  maxstep=atoi(optarg); break;
+        case 't': maxstep=atoi(optarg); break;
         case 'd': detail=1; break;
         case 'h': help=1;
         default: /* '?' */
@@ -66,7 +77,7 @@ int main(int argc, char *argv[]) {
     }
   }
   
-  if (ver < 1 || ver > 2) {printf("Error: invalid version.\n"); help=1;}
+  if (ver==0) {printf("Error: invalid version.\n"); help=1;}
   if (opt < 1 || opt > 4) {printf("Error: invalid opt value.\n"); help=1;}
   if (s<0) {printf("Error: Negative value of seq not allowed.\n"); help=1;}
   if (maxstep<0) {printf("Error: Negative value of stp not allowed.\n"); help=1;}
@@ -129,9 +140,10 @@ int main(int argc, char *argv[]) {
     "       BM sequence expression of Bashicu matrix.\n"
     "       n: natural number. n=2 if not given.\n"
     "       ex. \"(0,0)(1,1)[3]\"   (Quote to escape brackets in shell)\n"
-    "  ver  Version of Bashicu matrix system (1 or 2). Default = 1.\n"
-    "       ver = 1: The first simple version in 2014.\n"
-    "       ver = 2: Modified version to avoid non-terminating pattern in 2016.\n"
+    "  ver  Version of Bashicu matrix system (1 or 2). Default = 2.1.\n"
+    "       ver = 1 or 1.0: The first simple version in 2014.\n"
+    "       ver = 2 or 2.0: Modified version to avoid non-terminating pattern in 2016.\n"
+    "       ver = 2.1     : Modified version to fit Buchholz's Hydra.\n"
     "  opt  Calculation option.\n"
     "       opt = 1: n is constant. (Default)\n"
     "       opt = 2: n = n+1 for each loop.\n"
@@ -152,8 +164,9 @@ int main(int argc, char *argv[]) {
 
   /**************************** Start calculation ****************************/
   for (n = j-1; n >= 0; n--) {
-
+    if(detail)printf("--------------------------------------------\n");
     /* Show current sequence */
+    printf("All   = "); 
     for (i=0; i<=n; i++) {
       printf ("(");
       for (j=0; j<row; j++) printf ("%d,", S[j + i*nr]);
@@ -172,7 +185,7 @@ int main(int argc, char *argv[]) {
       /* If the first row of S_n is 0, no bad sequence */
       if (opt == 4) num++;
     } else {
-      if (ver == 1) {
+      if (ver == 100) {
         /***** Version 1 *****/
         /* Calculate m = Uppermost zero at the rightmost sequence */
         m = row+1; /* row = number of rows + 1 */
@@ -188,13 +201,23 @@ int main(int argc, char *argv[]) {
             bad = k; k = n+1;
           }
         }
-      } else {
+      } else if(ver == 200){
         /***** Version 2 *****/
         /* Clear Delta */
         for (m=0; m<=row; m++) Delta[m]=0;
         /* Determine the bad sequence and calculate Delta */
-        for (k=0; k<=n; k++) {
-          for (l = 0; l <= row; l++) {
+        for (k=0; k<=n; k++) { /* k = pivot column */
+          if(detail){
+            printf ("S[n]-D= (");
+            for (l=0; l<row; l++) printf ("%d,",S[l+n*nr]-Delta[l]);
+            printf ("%d)\n", S[row+n*nr]-Delta[row]);
+          }
+          if(detail){
+            printf ("S[n-k]= (");
+            for (l=0; l<row; l++) printf ("%d,",S[l+(n-k)*nr]);
+            printf ("%d)\n", S[row+(n-k)*nr]);
+          }
+          for (l = 0; l <= row; l++) { /* l = row */
              if (S[l + (n-k)*nr] < S[l + n*nr] - Delta[l]) {
                if (S[l+1 + n*nr] == 0 || l==row) {
                  l = row; bad=k; k=n;
@@ -204,6 +227,11 @@ int main(int argc, char *argv[]) {
              } else {
                l = row; /* Go to left sequence (k loop) */
              }
+          }
+          if(detail){
+            printf ("Delta = (");
+            for (l=0; l<row; l++) printf ("%d,",Delta[l]);
+            printf ("%d)\n", Delta[row]);
           }
         }
         /* Calculate C matrix */
@@ -217,6 +245,31 @@ int main(int argc, char *argv[]) {
                  l=0;
               }
            }
+        }
+        if(detail){
+            printf ("C     = ");
+            for (l=1; l<=bad; l++) {
+                printf ("(");
+                for (m=0; m<row; m++) printf ("%d,",C[m+l*nr]);
+                printf ("%d)",C[row+l*nr]);
+            }
+            printf ("\n");
+        }
+      } else if(ver == 210){
+        /***** Version 2.1 *****/
+        /* Calculate m = Uppermost zero at the rightmost sequence */
+        m = row+1; /* row = number of rows + 1 */
+        for (j=0; j<=row; j++){
+          if (S[j + n*nr] == 0) m=j, j=row+1;
+        }
+        /* Determine the bad sequence and calculate Delta */
+        for (k=0; k<=n; k++) {
+          found = 1; for (l = 0; l < m; l++) if (S[l + (n-k)*nr] >= S[l + n*nr]) found=0;
+          /* If found, calculate Delta */
+          if (found) {
+            for (l = 0; l<=row; l++) Delta[l] = (l < m-1)? S[l + n*nr]-S[l + (n-k)*nr]: 0;
+            bad = k; k = n+1;
+          }
         }
       }
     }
