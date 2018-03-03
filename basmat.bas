@@ -1,35 +1,40 @@
-A=9:dim B[Åá,Åá],C[Åá]
-for D=0 to 9
- for E=0 to A
-  B[2,E+1]=1
+A=9:dim B[Åá,Åá],C[Åá,Åá],D[Åá]
+for E=0 to 9
+ for F=0 to A
+  B[1,F]=1:C[1,F]=1
  next
- for F=2 to 1 step -1
+ for G=1 to 0 step -1
   A=A*A
-  for G=0 to F
-   for H=1 to E
-    if B[F-G,H]<B[F,H]-C[H] | B[F,1]=0 then
-     if B[F,H+1]=0 then H=E:I=G:G=F else C[H]=B[F,H]-B[F-G,H]
+  for H=0 to G
+   for I=0 to F
+    if B[G-H,I]<B[G,I]-D[I] | B[G,0]=0 then
+     if B[G,I+1]=0 then I=F:J=H:H=G else D[I]=B[G,I]-B[G-H,I]
     else
-     H=E
+     I=F
     endif
    next
   next
-  for J=1 to A
-   K=I
-   for L=1 to I
-    for M=I to K
-     if B[F-M,1]<B[F-I,1] | L=1 then
-      for N=1 to E
-       B[F,N]=B[F-I,N]
-       if B[F-M,N]<B[F-M+I,N] & B[F-K,N]<B[F-I,N] | L=1 then B[F,N]=B[F,N]+C[N]
-      next
-      F=F+1:K=K+1:M=K
-     endif
-    next
+  for K=1 to J
+   for L=K to 0 step -1
+    if B[G-J+L,0]<B[G-J+K,0] then
+     for M=0 to F
+      if B[G-J,M]<B[G-J+K,M] & C[L+1,M]=1 then C[K+1,M]=1 else C[K+1,M]=0
+     next
+     L=0
+    endif
    next
   next
-  for O=1 to E
-   C[O]=0
+  for N=1 to A
+   for O=1 to J
+    for P=0 to F
+     B[G,P]=B[G-J,P]
+     if C[O,P]=1 then B[G,P]=B[G,P]+D[P]
+    next
+    G=G+1
+   next
+  next
+  for Q=0 to F
+   D[Q]=0
   next
  next
 next
