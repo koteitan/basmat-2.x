@@ -14,7 +14,7 @@ for D=0 to 9
     next
     for I=0 to F
       for J=0 to F-I
-        if B(F-I-J,0)<B(F,0) then I=I+J
+        if B(F-I-J,0)<B(F,0) then I=I+J:J=F-I
       next
       for J=0 to H
         if B(F-I,J)<B(F,J) then K=K+1
