@@ -1,4 +1,5 @@
-A=9:dim B(infinity,infinity):dimÅ@C(infinity)
+REM BASHICU MATRIX VERSION 2.1 BY KOTEITAN
+A=9:dim B(infinity,infinity):dim C(infinity)
 for D=0 to 9
   for E=0 to A
     B(1,E)=1
@@ -9,6 +10,9 @@ for D=0 to 9
       if B(F,G)=0 then H=G-1:G=E
     next
     for I=0 to F
+      for J=0 to F-I
+        if B(F-I-J,0)<B(F,0) then I=I+J
+      next
       for J=0 to H
         if B(F-I,J)<B(F,J) then K=K+1
       next
