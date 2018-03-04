@@ -51,7 +51,7 @@ Authors:
 #include <limits.h>
 #include <string.h>
 #include <unistd.h>
-
+ 
 int main(int argc, char *argv[]) {
   /**************************** Initialization ****************************/
   int *S, *Delta, *C, row=0, bad, found, i=0, j, l, m, nr, len;
@@ -169,7 +169,6 @@ int main(int argc, char *argv[]) {
   for (n = j-1; n >= 0; n--) {
     if(detail)printf("--------------------------------------------\n");
     /* Show current sequence */
-    printf("All   = "); 
     for (i=0; i<=n; i++) {
       printf ("(");
       for (j=0; j<row; j++) printf ("%d,", S[j + i*nr]);
@@ -270,6 +269,15 @@ int main(int argc, char *argv[]) {
           /* find and jump to parent of n */
           for (l=1; n-(k+l)>=0; l++) {
             if(S[0+(n-(k+l))*nr] < S[0+(n-k)*nr]){
+#if 0
+              printf("find tree parent:\n");
+              printf("child =(");
+              for (j=0; j<row; j++) printf ("%d,",S[j+(n-k)*nr]);
+              printf ("%d)\n", S[j+(n-k)*nr]);
+              printf("parent=(");
+              for (j=0; j<row; j++) printf ("%d,",S[j+(n-k-l)*nr]);
+              printf ("%d)\n", S[j+(n-k-l)*nr]);
+#endif
               k=k+l; /* jump to parent */
               break;
             }
@@ -281,6 +289,16 @@ int main(int argc, char *argv[]) {
               break;
             }
           }
+#if 0
+          printf("find label parent:\n");
+          printf("child =(");
+          for (j=0; j<row; j++) printf ("%d,",S[j+n*nr]);
+          printf ("%d)\n", S[j+n*nr]);
+          printf("parent=(");
+          for (j=0; j<row; j++) printf ("%d,",S[j+(n-k)*nr]);
+          printf ("%d)\n", S[j+(n-k)*nr]);
+          printf("found=%d\n",found);
+#endif
           /* If all dimension are small, calculate Delta */
           if (found) {
             for (l = 0; l<=row; l++){
@@ -293,7 +311,7 @@ int main(int argc, char *argv[]) {
               for (l=0; l<row; l++) printf ("%d,",S[l+(n-bad)*nr]);
               printf ("%d)\n", S[row+(n-bad)*nr]);
             }
-          }
+          }else{k=k-1;}
         }
       }
     }
